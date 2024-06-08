@@ -20,18 +20,19 @@ fun Route.expensesRouting() {
     }
 
     get("/expenses/{id}") {
-
         val id = call.parameters["id"]?.toLongOrNull()
-        if(id == null || id !in 0 until expenses.size) {
+        val expense = expenses.find { it.id == id }
+        if(id == null || expense==null) {
             call.respond(HttpStatusCode.NotFound, MessageResponse("Expense not found"))
             return@get
         }
-        call.respond(HttpStatusCode.OK, expenses[id.toInt()])
+        call.respond(HttpStatusCode.OK, expense)
     }
 
     post("expenses"){
         val expense = call.receive<Expense>()
-        expenses.add(expense)
+        val maxID = expenses.maxOf { it.id } + 1
+        expenses.add(expense.copy(id= maxID))
         call.respond(HttpStatusCode.OK, MessageResponse(" Expense add Successfully"))
     }
 
