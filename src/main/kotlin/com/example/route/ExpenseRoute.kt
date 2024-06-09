@@ -12,34 +12,34 @@ import io.ktor.server.routing.*
 fun Route.expensesRouting() {
 
     get("/expenses") {
-        if(expenses.isEmpty()){
-            call.respondText { "No expenses found" }
-        }else {
-            call.respond(status = HttpStatusCode.OK, expenses)
-        }
+        call.respond(status = HttpStatusCode.OK, expenses)
     }
 
     get("/expenses/{id}") {
         val id = call.parameters["id"]?.toLongOrNull()
         val expense = expenses.find { it.id == id }
-        if(id == null || expense==null) {
+        if (id == null || expense == null) {
             call.respond(HttpStatusCode.NotFound, MessageResponse("Expense not found"))
             return@get
         }
         call.respond(HttpStatusCode.OK, expense)
     }
 
-    post("expenses"){
+    post("expenses") {
         val expense = call.receive<Expense>()
-        val maxID = expenses.maxOf { it.id } + 1
-        expenses.add(expense.copy(id= maxID))
+        val lastExpenseId = if (expenses.isEmpty()) {
+            expense.id
+        } else {
+            expenses.maxOf { it.id } + 1
+        }
+        expenses.add(expense.copy(id = lastExpenseId))
         call.respond(HttpStatusCode.OK, MessageResponse(" Expense add Successfully"))
     }
 
-    put("expenses/{id}"){
+    put("expenses/{id}") {
         val id = call.parameters["id"]?.toLongOrNull()
         val expense = call.receive<Expense>()
-        if(id == null || id !in 0 until expenses.size) {
+        if (id == null || id !in 0 until expenses.size) {
             call.respond(HttpStatusCode.NotFound, MessageResponse("Expense not found"))
             return@put
         }
@@ -50,10 +50,10 @@ fun Route.expensesRouting() {
 
     }
 
-    delete("expenses/{id}"){
+    delete("expenses/{id}") {
         val id = call.parameters["id"]?.toLongOrNull()
         val expense = expenses.find { it.id == id }
-        if(id == null || expense==null) {
+        if (id == null || expense == null) {
             call.respond(HttpStatusCode.NotFound, MessageResponse("Expense not found"))
             return@delete
         }
